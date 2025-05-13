@@ -256,6 +256,7 @@
     </style>
 </head>
 
+
 <body>
     <!-- Header -->
     <header>
@@ -470,15 +471,18 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="form-row">
-                <div class="form-col form-col-12">
-                    <div class="form-group">
-                        <label for="wallRemark">หมายเหตุ</label>
-                        <input type="text" id="wallRemark" placeholder="ข้อความหมายเหตุเพิ่มเติม">
+
+                <!-- หมายเหตุจะแสดงเฉพาะในโหมดแก้ไข -->
+                <div class="form-row" id="remarkContainer">
+                    <div class="form-col form-col-12">
+                        <div class="form-group">
+                            <label for="wallRemark">หมายเหตุ</label>
+                            <input type="text" id="wallRemark" placeholder="ข้อความหมายเหตุเพิ่มเติม">
+                        </div>
                     </div>
                 </div>
             </div>
+
             <div class="form-actions">
                 <button id="addWallBtn" onclick="addWall()" class="btn btn-primary btn-add">
                         <span class="plus-icon">+</span> เพิ่ม
@@ -551,6 +555,7 @@
     <footer>
         <p>© 2025 ระบบถอดปริมาณวัสดุผนังจากแบบก่อสร้าง</p>
     </footer>
+
     <script>
         // ===============================================
         // SECTION 1: VARIABLE DECLARATIONS AND CONSTANTS
@@ -652,6 +657,9 @@
 
             // Initialize the form visibility
             updateFormVisibility();
+
+            // ซ่อนกล่องหมายเหตุในตอนเริ่มต้น
+            document.getElementById('remarkContainer').style.display = 'none';
         });
 
         // Update UI based on form state
@@ -690,6 +698,9 @@
 
             // Control Lintel edit container visibility
             document.getElementById('lintelEditContainer').style.display = editMode ? 'block' : 'none';
+
+            // แสดงกล่องหมายเหตุเฉพาะในโหมดแก้ไข
+            document.getElementById('remarkContainer').style.display = editMode ? 'block' : 'none';
         }
 
         // Auto-fill opening dimensions when code is entered
@@ -730,7 +741,6 @@
             // Update UI buttons
             document.getElementById('wallLocationInterior').classList.toggle('active', location === 'ผนังภายใน');
             document.getElementById('wallLocationExterior').classList.toggle('active', location === 'ผนังภายนอก');
-
             updateFormVisibility();
         }
 
@@ -1510,7 +1520,7 @@
             document.getElementById('horizontalLintelCount').value = '';
             document.getElementById('additionalLintelSize').value = '';
             document.getElementById('additionalLintelCount').value = '';
-            document.getElementById('wallRemark').value = ''; // เพิ่มบรรทัดนี้
+            document.getElementById('wallRemark').value = ''; // รีเซ็ตหมายเหตุ
 
             // Exit edit mode if active
             editMode = false;
@@ -1522,6 +1532,9 @@
             // Remove highlight from inputs
             document.getElementById('wallLength').classList.remove('highlight');
             document.getElementById('wallHeight').classList.remove('highlight');
+
+            // ซ่อนกล่องหมายเหตุ
+            document.getElementById('remarkContainer').style.display = 'none';
         }
 
         // Remove wall from the list
@@ -1546,7 +1559,9 @@
             document.getElementById('gridLine').value = wall.gridLine;
             document.getElementById('wallLength').value = wall.wallLength;
             document.getElementById('wallHeight').value = wall.wallHeight;
-            document.getElementById('wallRemark').value = wall.customRemark || ''; // เพิ่มบรรทัดนี้
+
+            // นำข้อมูลหมายเหตุมาแสดง
+            document.getElementById('wallRemark').value = wall.customRemark || '';
 
             // Set wall type and location
             setWallType(wall.wallType);
@@ -1773,7 +1788,6 @@
                 count
             }));
         }
-
         // Update summary section (ปรับแก้ - เรียงลำดับหนาบาง และความยาว Lintel)
         function updateSummary() {
             if (walls.length === 0) {
