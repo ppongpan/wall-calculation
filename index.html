@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ระบบถอดปริมาณวัสดุผนังจากแบบก่อสร้าง</title>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -299,13 +300,13 @@
                     <div class="form-group">
                         <label for="blockThickness">ความหนา Block</label>
                         <select id="blockThickness">
-                            <option value="7.5 cm." selected>7.5 cm.</option>
-                            <option value="10 cm.">10 cm.</option>
-                            <option value="12.5 cm.">12.5 cm.</option>
-                            <option value="15 cm.">15 cm.</option>
-                            <option value="17.5 cm.">17.5 cm.</option>
-                            <option value="20 cm.">20 cm.</option>
-                        </select>
+                                <option value="7.5 cm." selected>7.5 cm.</option>
+                                <option value="10 cm.">10 cm.</option>
+                                <option value="12.5 cm.">12.5 cm.</option>
+                                <option value="15 cm.">15 cm.</option>
+                                <option value="17.5 cm.">17.5 cm.</option>
+                                <option value="20 cm.">20 cm.</option>
+                            </select>
                     </div>
                 </div>
 
@@ -371,6 +372,7 @@
                     </div>
                 </div>
             </div>
+
 
             <!-- Opening details - only shown if wall has opening -->
             <div id="openingDetails" style="display: none;">
@@ -469,11 +471,18 @@
                     </div>
                 </div>
             </div>
-
+            <div class="form-row">
+                <div class="form-col form-col-12">
+                    <div class="form-group">
+                        <label for="wallRemark">หมายเหตุ</label>
+                        <input type="text" id="wallRemark" placeholder="ข้อความหมายเหตุเพิ่มเติม">
+                    </div>
+                </div>
+            </div>
             <div class="form-actions">
                 <button id="addWallBtn" onclick="addWall()" class="btn btn-primary btn-add">
-                    <span class="plus-icon">+</span> เพิ่ม
-                </button>
+                        <span class="plus-icon">+</span> เพิ่ม
+                    </button>
             </div>
         </div>
 
@@ -507,7 +516,7 @@
             </div>
         </div>
 
-        <!-- Summary -->
+        <!-- Summary (ลบกล่องขนาดทับหลังและเอ็นคสล.) -->
         <div id="summary" class="card" style="display: none;">
             <h2>สรุปรวมปริมาณวัสดุ</h2>
             <div class="summary-grid">
@@ -522,31 +531,16 @@
                 </div>
 
                 <div class="summary-item">
-                    <h3>จำนวน Q-CON Block แยกตามความหนา</h3>
+                    <h3>จำนวน Q-CON Block</h3>
                     <div id="blockCountByThickness"></div>
                 </div>
 
                 <div class="summary-item">
-                    <h3>ขนาด Lintel สำเร็จรูป</h3>
+                    <h3>จำนวน Lintel</h3>
                     <div id="lintelSummary"></div>
                 </div>
-
-                <div class="summary-item">
-                    <h3>ขนาดทับหลังและเอ็นคสล.</h3>
-                    <div id="concreteSummary"></div>
-                </div>
-
-
-
-
-
-
             </div>
-            <div class="mt-3 px-3">
-                <p class="text-muted small">
-                    ผนังที่มีพื้นที่เกินกำหนดจะถูกแสดงด้วยสีส้ม และต้องมีการเทเอ็นคสล. เพื่อเพิ่มความแข็งแรง<br> ข้อมูล Lintel ที่แก้ไขด้วยตนเองจะแสดงด้วยสีน้ำเงิน
-                </p>
-            </div>
+
 
             <div class="form-actions">
                 <button onclick="printReport()" class="btn btn-primary">พิมพ์รายงาน</button>
@@ -557,9 +551,11 @@
     <footer>
         <p>© 2025 ระบบถอดปริมาณวัสดุผนังจากแบบก่อสร้าง</p>
     </footer>
-
-
     <script>
+        // ===============================================
+        // SECTION 1: VARIABLE DECLARATIONS AND CONSTANTS
+        // ===============================================
+
         // Wall data and saved openings state
         let walls = [];
         let savedOpenings = {};
@@ -644,6 +640,10 @@
             3.0: 3.3
         };
 
+        // ===============================================
+        // SECTION 2: EVENT HANDLERS AND UI FUNCTIONS
+        // ===============================================
+
         // Set today's date as default for the date input
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
@@ -691,6 +691,26 @@
             // Control Lintel edit container visibility
             document.getElementById('lintelEditContainer').style.display = editMode ? 'block' : 'none';
         }
+
+        // Auto-fill opening dimensions when code is entered
+        document.getElementById('openingCode').addEventListener('input', function(e) {
+            const code = e.target.value;
+            if (savedOpenings[code]) {
+                document.getElementById('openingWidth').value = savedOpenings[code].width;
+                document.getElementById('openingHeight').value = savedOpenings[code].height;
+            }
+        });
+
+        // Listen for block thickness changes
+        document.getElementById('blockThickness').addEventListener('change', updateFormVisibility);
+
+        // Listen for wall dimension changes
+        document.getElementById('wallLength').addEventListener('input', updateFormVisibility);
+        document.getElementById('wallHeight').addEventListener('input', updateFormVisibility);
+
+        // ===============================================
+        // SECTION 3: WALL TYPE AND PROPERTIES SELECTION FUNCTIONS
+        // ===============================================
 
         // Handle wall type selection
         function setWallType(type) {
@@ -757,21 +777,9 @@
             updateFormVisibility();
         }
 
-        // Auto-fill opening dimensions when code is entered
-        document.getElementById('openingCode').addEventListener('input', function(e) {
-            const code = e.target.value;
-            if (savedOpenings[code]) {
-                document.getElementById('openingWidth').value = savedOpenings[code].width;
-                document.getElementById('openingHeight').value = savedOpenings[code].height;
-            }
-        });
-
-        // Listen for block thickness changes
-        document.getElementById('blockThickness').addEventListener('change', updateFormVisibility);
-
-        // Listen for wall dimension changes
-        document.getElementById('wallLength').addEventListener('input', updateFormVisibility);
-        document.getElementById('wallHeight').addEventListener('input', updateFormVisibility);
+        // ===============================================
+        // SECTION 4: MATERIAL CALCULATION FUNCTIONS
+        // ===============================================
 
         // Check if wall area exceeds maximum allowed
         function checkWallArea(area, blockThickness, wallLocation) {
@@ -923,9 +931,16 @@
                 // Check if need concrete divider due to length or height
                 let needConcreteDivider = false;
 
+                // FIX: Only add remark about exceeding dimension if the area also exceeds maximum
                 if (wallLength > maxLintelLength || wallHeight > maxLintelLength) {
                     needConcreteDivider = true;
-                    remark = `ความยาวหรือความสูงผนังเกิน ${maxLintelLength} ม. ต้องหล่อเอ็น คสล.`;
+                    // Only create remark if area exceeds max
+                    if (exceedsMaxArea) {
+                        remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวหรือความสูงผนังเกิน ${maxLintelLength} ม. ต้องหล่อเอ็น คสล.`;
+                    }
+                } else if (exceedsMaxArea) {
+                    // Only add "ผนังที่มีพื้นที่เกินกำหนด" if area exceeds max
+                    remark = "ผนังที่มีพื้นที่เกินกำหนด";
                 }
 
                 // Calculate total area (no openings in this case)
@@ -944,10 +959,17 @@
                                 if (lintelLength > 400) {
                                     additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
                                     additionalLintelCount = 1;
-                                    remark = "ความยาวผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.";
+                                    if (exceedsMaxArea) {
+                                        remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.`;
+                                    }
                                 } else {
                                     additionalLintelSize = `L20x${lintelLength}x7.5`;
-                                    additionalLintelCount = Math.ceil(wallHeight / 3); // Add Lintel every 3m of height
+                                    // พื้นที่เกินกำหนดและเป็นผนังทึบใช้ Lintel แนวนอน 1 ท่อนตรงกลางผนัง
+                                    if (exceedsMaxArea && currentWallType === 'ผนังทึบ') {
+                                        additionalLintelCount = 1; // ใช้ 1 ท่อนเท่านั้นสำหรับผนังทึบที่พื้นที่เกิน
+                                    } else {
+                                        additionalLintelCount = Math.ceil(wallHeight / 3); // Add Lintel every 3m of height
+                                    }
 
                                     // Check if Lintel covers the entire wall
                                     if (additionalLintelCount * 3 >= wallHeight) {
@@ -963,12 +985,20 @@
 
                                 // Check if Lintel length exceeds 400 cm
                                 if (lintelLength > 400) {
-                                    additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความสูงผนัง";
+                                    // เปลี่ยนเป็นเอ็นคสล.แทนการใช้ทับหลังคสล.
+                                    additionalLintelSize = "เอ็นคสล.";
                                     additionalLintelCount = 1;
-                                    remark = "ความสูงผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.";
+                                    if (exceedsMaxArea) {
+                                        remark = `ผนังที่มีพื้นที่เกินกำหนด, ความสูงผนังเกิน 4 ม. ต้องใช้เอ็นคสล.`;
+                                    }
                                 } else {
                                     additionalLintelSize = `L20x${lintelLength}x7.5`;
-                                    additionalLintelCount = Math.ceil(wallLength / 3); // Add Lintel every 3m of length
+                                    // พื้นที่เกินกำหนดและเป็นผนังทึบใช้ Lintel แนวตั้ง 1 ท่อนตรงกลางผนัง
+                                    if (exceedsMaxArea && currentWallType === 'ผนังทึบ') {
+                                        additionalLintelCount = 1; // ใช้ 1 ท่อนเท่านั้นสำหรับผนังทึบที่พื้นที่เกิน
+                                    } else {
+                                        additionalLintelCount = Math.ceil(wallLength / 3); // ตามปกติคือ Lintel ทุกๆ 3m
+                                    }
 
                                     // Check if Lintel covers the entire wall
                                     if (additionalLintelCount * 3 >= wallLength) {
@@ -992,12 +1022,21 @@
                                 // Wall length exceeds 3.6m
                                 additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
                                 additionalLintelCount = 1;
-                                remark = "ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.";
+                                if (exceedsMaxArea) {
+                                    remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.`;
+                                }
                             }
                         }
                     } else {
                         // เอ็นคสล.
-                        remark = "แบ่งพื้นที่ผนังด้วยเอ็นคสล.";
+                        if (exceedsMaxArea && !remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.")) {
+                            if (remark) {
+                                remark = `${remark}, แบ่งพื้นที่ผนังด้วยเอ็นคสล.`;
+                            } else {
+                                remark = "แบ่งพื้นที่ผนังด้วยเอ็นคสล.";
+                            }
+                        }
+
                         // Clear all Lintel data when using เอ็นคสล.
                         additionalLintelSize = "";
                         additionalLintelCount = 0;
@@ -1012,9 +1051,12 @@
                 // Check if need concrete divider due to length or height
                 let needConcreteDivider = false;
 
+                // FIX: Only add remark about exceeding dimension if the area also exceeds maximum
                 if (wallLength > maxLintelLength || wallHeight > maxLintelLength) {
                     needConcreteDivider = true;
-                    remark = `ความยาวหรือความสูงผนังเกิน ${maxLintelLength} ม. ต้องหล่อเอ็น คสล.`;
+                    if (exceedsMaxArea) {
+                        remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวหรือความสูงผนังเกิน ${maxLintelLength} ม. ต้องหล่อเอ็น คสล.`;
+                    }
                 }
 
                 if (thicknessValue === 7.5) {
@@ -1025,7 +1067,9 @@
                         if (verticalLength > 400) {
                             verticalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความสูงผนัง";
                             verticalLintelCount = 2; // Two sides of opening
-                            remark = "ความสูงผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.";
+                            if (exceedsMaxArea) {
+                                remark = `ผนังที่มีพื้นที่เกินกำหนด, ความสูงผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.`;
+                            }
                         } else {
                             verticalLintelSize = `L20x${verticalLength}x7.5`;
                             verticalLintelCount = 2; // Always 2 vertical Lintels for 7.5cm
@@ -1059,7 +1103,9 @@
                         if (horizontalLength > 400) {
                             horizontalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
                             horizontalLintelCount = (currentOpeningType === 'ช่องเปิดประตู') ? 1 : 2;
-                            remark = "ความยาวผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.";
+                            if (exceedsMaxArea) {
+                                remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.`;
+                            }
                         } else {
                             horizontalLintelSize = `L20x${horizontalLength}x7.5`;
 
@@ -1096,7 +1142,9 @@
                     if (wallLength > 3.6 || needConcreteDivider) {
                         horizontalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนังเหนือช่องเปิด";
                         horizontalLintelCount = 1;
-                        remark = `ความยาวผนังเกิน ${maxLintelLength} ม. ต้องหล่อทับหลัง คสล.`;
+                        if (exceedsMaxArea) {
+                            remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวผนังเกิน ${maxLintelLength} ม. ต้องหล่อทับหลัง คสล.`;
+                        }
                     } else {
                         horizontalLintelSize = `L20x${Math.ceil(lintelLength * 100)}x${thicknessValue}`;
                         horizontalLintelCount = 1;
@@ -1112,6 +1160,12 @@
                 // Check if net area exceeds maximum allowed
                 exceedsMaxArea = checkWallArea(area, blockThickness, wallLocation);
 
+                // Update remark if area exceeds maximum
+                if (exceedsMaxArea && !remark) {
+                    remark = "ผนังที่มีพื้นที่เกินกำหนด";
+                } else if (exceedsMaxArea && !remark.includes("ผนังที่มีพื้นที่เกินกำหนด")) {
+                    remark = `ผนังที่มีพื้นที่เกินกำหนด, ${remark}`;
+                }
                 // If area exceeds max or requires concrete divider, add appropriate reinforcement
                 if (exceedsMaxArea || needConcreteDivider) {
                     if (wallDivider === 'Lintel' && !needConcreteDivider && !bothDimensionsExceed4m) {
@@ -1121,7 +1175,13 @@
                             if (additionalLintelSize === "" || additionalLintelCount === 0) {
                                 additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
                                 additionalLintelCount = 1;
-                                remark = "ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.";
+                                if (!remark.includes("ความยาวผนังเกิน 3.6 ม.")) {
+                                    if (remark) {
+                                        remark = `${remark}, ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.`;
+                                    } else if (exceedsMaxArea) {
+                                        remark = "ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.";
+                                    }
+                                }
                             }
                         } else if (additionalLintelSize === "" || additionalLintelCount === 0) {
                             // Add reinforcement based on wall dimensions
@@ -1133,9 +1193,14 @@
                                 if ((thicknessValue === 7.5 && lintelLength > 400) || (thicknessValue !== 7.5 && lintelLength > 360)) {
                                     additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
                                     additionalLintelCount = 1;
-                                    remark = thicknessValue === 7.5 ?
+                                    const exceedRemark = thicknessValue === 7.5 ?
                                         "ความยาวผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล." :
                                         "ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.";
+                                    if (remark) {
+                                        remark = `${remark}, ${exceedRemark}`;
+                                    } else if (exceedsMaxArea) {
+                                        remark = exceedRemark;
+                                    }
                                 } else {
                                     additionalLintelSize = `L20x${lintelLength}x${size}`;
                                     additionalLintelCount = Math.ceil(wallHeight / 3) - horizontalLintelCount;
@@ -1158,9 +1223,14 @@
                                 if ((thicknessValue === 7.5 && lintelLength > 400) || (thicknessValue !== 7.5 && lintelLength > 360)) {
                                     additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความสูงผนัง";
                                     additionalLintelCount = 1;
-                                    remark = thicknessValue === 7.5 ?
+                                    const exceedRemark = thicknessValue === 7.5 ?
                                         "ความสูงผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล." :
                                         "ความสูงผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.";
+                                    if (remark) {
+                                        remark = `${remark}, ${exceedRemark}`;
+                                    } else if (exceedsMaxArea) {
+                                        remark = exceedRemark;
+                                    }
                                 } else {
                                     additionalLintelSize = `L20x${lintelLength}x${size}`;
                                     additionalLintelCount = Math.ceil(wallLength / 3) - (verticalLintelCount > 0 ? 2 : 0);
@@ -1179,8 +1249,15 @@
                         }
                     } else {
                         // เอ็นคสล.
-                        remark = "แบ่งพื้นที่ผนังด้วยเอ็นคสล.";
-                        // Clear all Lintel data when using เอ็นคสล.
+                        if (!remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.")) {
+                            if (remark) {
+                                remark = `${remark}, แบ่งพื้นที่ผนังด้วยเอ็นคสล.`;
+                            } else {
+                                remark = "แบ่งพื้นที่ผนังด้วยเอ็นคสล.";
+                            }
+                        }
+
+                        // Clear all Lintel data when using concrete instead
                         if (wallDivider === 'เอ็นคสล.') {
                             verticalLintelSize = "";
                             verticalLintelCount = 0;
@@ -1197,9 +1274,13 @@
             }
 
             // If Lintel covers the entire wall (height or length) and is 7.5 cm thickness,
-            // don't include remark about dividing area
+            // don't include remark about dividing area with เอ็นคสล., but keep "ผนังที่มีพื้นที่เกินกำหนด" if it exists
             if (isFullWallLintel && thicknessValue === 7.5 && remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.")) {
-                remark = "";
+                if (remark.includes("ผนังที่มีพื้นที่เกินกำหนด")) {
+                    remark = "ผนังที่มีพื้นที่เกินกำหนด";
+                } else {
+                    remark = "";
+                }
             }
 
             // Recalculate area with appropriate deductions
@@ -1235,6 +1316,10 @@
                 wallHeight
             };
         }
+
+        // ===============================================
+        // SECTION 5: WALL MANAGEMENT FUNCTIONS (ADD/EDIT/REMOVE)
+        // ===============================================
 
         // Add wall to the list
         function addWall() {
@@ -1319,6 +1404,14 @@
                 wallData.id = Date.now();
             }
 
+            // บันทึกหมายเหตุที่ผู้ใช้ป้อน
+            const customRemark = document.getElementById('wallRemark').value;
+            if (customRemark) {
+                wallData.customRemark = customRemark;
+                // ถ้ามีการกรอกหมายเหตุ ให้แทนที่หมายเหตุที่สร้างโดยระบบ
+                wallData.remark = customRemark;
+            }
+
             // Add form field data
             wallData.blockThickness = document.getElementById('blockThickness').value;
             wallData.wallType = currentWallType;
@@ -1333,6 +1426,31 @@
             wallData.openingWidth = document.getElementById('openingWidth').value;
             wallData.openingHeight = document.getElementById('openingHeight').value;
             wallData.openingCode = document.getElementById('openingCode').value;
+
+            // แก้ไขเพิ่มเติม: แปลงทับหลังคสล. เป็นเอ็นคสล. ในข้อมูลที่แสดง
+            if (wallData.additionalLintelSize && wallData.additionalLintelSize.includes("หล่อทับหลังคสล.")) {
+                // เก็บค่าเดิมไว้ในฟิลด์แยก
+                wallData.originalLintelSize = wallData.additionalLintelSize;
+
+                // เปลี่ยนเป็นเอ็นคสล.
+                wallData.additionalLintelSize = "เอ็นคสล.";
+            }
+
+            if (wallData.verticalLintelSize && wallData.verticalLintelSize.includes("หล่อทับหลังคสล.")) {
+                // เก็บค่าเดิมไว้ในฟิลด์แยก
+                wallData.originalVerticalLintelSize = wallData.verticalLintelSize;
+
+                // เปลี่ยนเป็นเอ็นคสล.
+                wallData.verticalLintelSize = "เอ็นคสล.";
+            }
+
+            if (wallData.horizontalLintelSize && wallData.horizontalLintelSize.includes("หล่อทับหลังคสล.")) {
+                // เก็บค่าเดิมไว้ในฟิลด์แยก
+                wallData.originalHorizontalLintelSize = wallData.horizontalLintelSize;
+
+                // เปลี่ยนเป็นเอ็นคสล.
+                wallData.horizontalLintelSize = "เอ็นคสล.";
+            }
 
             // If lintel count is 0, remove the lintel size
             if (wallData.verticalLintelCount <= 0) {
@@ -1392,6 +1510,7 @@
             document.getElementById('horizontalLintelCount').value = '';
             document.getElementById('additionalLintelSize').value = '';
             document.getElementById('additionalLintelCount').value = '';
+            document.getElementById('wallRemark').value = ''; // เพิ่มบรรทัดนี้
 
             // Exit edit mode if active
             editMode = false;
@@ -1427,6 +1546,7 @@
             document.getElementById('gridLine').value = wall.gridLine;
             document.getElementById('wallLength').value = wall.wallLength;
             document.getElementById('wallHeight').value = wall.wallHeight;
+            document.getElementById('wallRemark').value = wall.customRemark || ''; // เพิ่มบรรทัดนี้
 
             // Set wall type and location
             setWallType(wall.wallType);
@@ -1488,6 +1608,11 @@
                 behavior: 'smooth'
             });
         }
+
+        // ===============================================
+        // SECTION 6: UI UPDATE FUNCTIONS AND SUMMARY CALCULATIONS
+        // ===============================================
+
         // Update wall list table
         function updateWallList() {
             const tableBody = document.getElementById('wallListBody');
@@ -1543,103 +1668,70 @@
                 const additionalLintelCountHtml = (showLintels && wall.additionalLintelCount > 0) ?
                     `<div class="${aLintelClass}">${wall.additionalLintelCount}</div>` : '';
 
-                // Create remark HTML if needed - don't show remark if this is a full wall Lintel
-                const remarkHtml = (wall.remark && !(wall.isFullWallLintel && wall.blockThickness === '7.5 cm.' && wall.remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล."))) ?
-                    `<div class="remark">${wall.remark}</div>` : '';
+                // Create remark HTML - ใช้ customRemark ถ้ามี มิฉะนั้นใช้ remark ที่ระบบสร้าง
+                let remarkContent = '';
+                if (wall.customRemark) {
+                    remarkContent = wall.customRemark;
+                } else if (wall.remark && !(wall.isFullWallLintel && wall.blockThickness === '7.5 cm.' &&
+                        wall.remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.") && !wall.remark.includes("ผนังที่มีพื้นที่เกินกำหนด"))) {
+                    remarkContent = wall.remark;
+                }
+
+                const remarkHtml = remarkContent ? `<div class="remark">${remarkContent}</div>` : '';
+
+                // Determine wall type display with opening type in parentheses if applicable
+                let wallTypeDisplay = wall.wallType;
+                if (wall.wallType === 'ผนังมีช่องเปิด') {
+                    wallTypeDisplay = `ผนังมีช่องเปิด (${wall.openingType === 'ช่องเปิดประตู' ? 'ประตู' : 'หน้าต่าง'})`;
+                }
 
                 row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${wall.floor || '-'}</td>
-                    <td>${wall.gridLine || '-'}</td>
-                    <td>${wall.blockThickness}</td>
-                    <td>${wall.wallType}<br>${wall.wallLocation}</td>
-                    <td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallLength + '</span>' : wall.wallLength}</td>
-                    <td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallHeight + '</span>' : wall.wallHeight}</td>
-                    <td>${wall.openingCode || '-'}</td>
-                    <td>${wall.blockCount}</td>
-                    <td>
-                        ${verticalLintelHtml}
-                        ${horizontalLintelHtml}
-                        ${additionalLintelHtml}
-                    </td>
-                    <td>
-                        ${verticalLintelCountHtml}
-                        ${horizontalLintelCountHtml}
-                        ${additionalLintelCountHtml}
-                    </td>
-                    <td>${remarkHtml}</td>
-                    <td>
-                        <div class="btn-group">
-                            <button onclick="editWall(${wall.id})" class="btn btn-primary" style="padding: 2px 8px; margin-right: 5px;">แก้ไข</button>
-                            <button onclick="removeWall(${wall.id})" class="btn btn-secondary" style="padding: 2px 8px;">ลบ</button>
-                        </div>
-                    </td>
-                `;
+    <td>${index + 1}</td>
+    <td>${wall.floor || '-'}</td>
+    <td>${wall.gridLine || '-'}</td>
+    <td>${wall.blockThickness}</td>
+    <td>${wallTypeDisplay}<br>${wall.wallLocation}</td>
+    <td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallLength + '</span>' : wall.wallLength}</td>
+    <td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallHeight + '</span>' : wall.wallHeight}</td>
+    <td>${wall.openingCode || '-'}</td>
+    <td>${wall.blockCount}</td>
+    <td>
+        ${verticalLintelHtml}
+        ${horizontalLintelHtml}
+        ${additionalLintelHtml}
+    </td>
+    <td>
+        ${verticalLintelCountHtml}
+        ${horizontalLintelCountHtml}
+        ${additionalLintelCountHtml}
+    </td>
+    <td>${remarkHtml}</td>
+    <td>
+        <div class="btn-group">
+            <button onclick="editWall(${wall.id})" class="btn btn-primary" style="padding: 2px 8px; margin-right: 5px;">แก้ไข</button>
+            <button onclick="removeWall(${wall.id})" class="btn btn-secondary" style="padding: 2px 8px;">ลบ</button>
+        </div>
+    </td>
+`;
 
                 tableBody.appendChild(row);
             });
         }
 
-        // Summarize all lintels - Separate for prefabricated lintels and concrete lintels
+        // ปรับปรุงฟังก์ชัน summarizeAllLintels เพื่อให้เรียงลำดับไลน์เทลได้ถูกต้อง
         function summarizeAllLintels(walls) {
             const prefabLintelSummary = {};
-            const concreteLintelSummary = {};
 
             walls.forEach(wall => {
                 // Skip walls that use เอ็นคสล. divider when area exceeds max
                 if (wall.exceedsMaxArea && wall.wallDivider === 'เอ็นคสล.') {
-                    // Add to concrete summary
-                    const concreteType = "เอ็นคสล.";
-                    if (concreteLintelSummary[concreteType]) {
-                        concreteLintelSummary[concreteType].count++;
-                        concreteLintelSummary[concreteType].walls.push({
-                            floor: wall.floor,
-                            grid: wall.gridLine,
-                            length: parseFloat(wall.wallLength) || 0,
-                            height: parseFloat(wall.wallHeight) || 0
-                        });
-                    } else {
-                        concreteLintelSummary[concreteType] = {
-                            count: 1,
-                            walls: [{
-                                floor: wall.floor,
-                                grid: wall.gridLine,
-                                length: parseFloat(wall.wallLength) || 0,
-                                height: parseFloat(wall.wallHeight) || 0
-                            }]
-                        };
-                    }
                     return;
                 }
 
                 // Process vertical lintel
                 if (wall.verticalLintelSize && wall.verticalLintelCount > 0) {
                     // Check if it's a concrete lintel
-                    if (wall.verticalLintelSize.includes("หล่อทับหลังคสล.")) {
-                        const concreteInfo = extractConcreteLength(wall.verticalLintelSize);
-                        if (concreteInfo) {
-                            const key = `${concreteInfo.type}: ${concreteInfo.length}`;
-                            if (concreteLintelSummary[key]) {
-                                concreteLintelSummary[key].count += wall.verticalLintelCount;
-                                concreteLintelSummary[key].walls.push({
-                                    floor: wall.floor,
-                                    grid: wall.gridLine,
-                                    length: parseFloat(wall.wallLength) || 0,
-                                    height: parseFloat(wall.wallHeight) || 0
-                                });
-                            } else {
-                                concreteLintelSummary[key] = {
-                                    count: wall.verticalLintelCount,
-                                    walls: [{
-                                        floor: wall.floor,
-                                        grid: wall.gridLine,
-                                        length: parseFloat(wall.wallLength) || 0,
-                                        height: parseFloat(wall.wallHeight) || 0
-                                    }]
-                                };
-                            }
-                        }
-                    } else {
+                    if (!wall.verticalLintelSize.includes("หล่อทับหลังคสล.") && wall.verticalLintelSize !== "เอ็นคสล.") {
                         // It's a prefabricated lintel
                         if (prefabLintelSummary[wall.verticalLintelSize]) {
                             prefabLintelSummary[wall.verticalLintelSize] += wall.verticalLintelCount;
@@ -1652,31 +1744,7 @@
                 // Process horizontal lintel
                 if (wall.horizontalLintelSize && wall.horizontalLintelCount > 0) {
                     // Check if it's a concrete lintel
-                    if (wall.horizontalLintelSize.includes("หล่อทับหลังคสล.")) {
-                        const concreteInfo = extractConcreteLength(wall.horizontalLintelSize);
-                        if (concreteInfo) {
-                            const key = `${concreteInfo.type}: ${concreteInfo.length}`;
-                            if (concreteLintelSummary[key]) {
-                                concreteLintelSummary[key].count += wall.horizontalLintelCount;
-                                concreteLintelSummary[key].walls.push({
-                                    floor: wall.floor,
-                                    grid: wall.gridLine,
-                                    length: parseFloat(wall.wallLength) || 0,
-                                    height: parseFloat(wall.wallHeight) || 0
-                                });
-                            } else {
-                                concreteLintelSummary[key] = {
-                                    count: wall.horizontalLintelCount,
-                                    walls: [{
-                                        floor: wall.floor,
-                                        grid: wall.gridLine,
-                                        length: parseFloat(wall.wallLength) || 0,
-                                        height: parseFloat(wall.wallHeight) || 0
-                                    }]
-                                };
-                            }
-                        }
-                    } else {
+                    if (!wall.horizontalLintelSize.includes("หล่อทับหลังคสล.") && wall.horizontalLintelSize !== "เอ็นคสล.") {
                         // It's a prefabricated lintel
                         if (prefabLintelSummary[wall.horizontalLintelSize]) {
                             prefabLintelSummary[wall.horizontalLintelSize] += wall.horizontalLintelCount;
@@ -1689,31 +1757,7 @@
                 // Process additional lintel
                 if (wall.additionalLintelSize && wall.additionalLintelCount > 0) {
                     // Check if it's a concrete lintel
-                    if (wall.additionalLintelSize.includes("หล่อทับหลังคสล.")) {
-                        const concreteInfo = extractConcreteLength(wall.additionalLintelSize);
-                        if (concreteInfo) {
-                            const key = `${concreteInfo.type}: ${concreteInfo.length}`;
-                            if (concreteLintelSummary[key]) {
-                                concreteLintelSummary[key].count += wall.additionalLintelCount;
-                                concreteLintelSummary[key].walls.push({
-                                    floor: wall.floor,
-                                    grid: wall.gridLine,
-                                    length: parseFloat(wall.wallLength) || 0,
-                                    height: parseFloat(wall.wallHeight) || 0
-                                });
-                            } else {
-                                concreteLintelSummary[key] = {
-                                    count: wall.additionalLintelCount,
-                                    walls: [{
-                                        floor: wall.floor,
-                                        grid: wall.gridLine,
-                                        length: parseFloat(wall.wallLength) || 0,
-                                        height: parseFloat(wall.wallHeight) || 0
-                                    }]
-                                };
-                            }
-                        }
-                    } else {
+                    if (!wall.additionalLintelSize.includes("หล่อทับหลังคสล.") && wall.additionalLintelSize !== "เอ็นคสล.") {
                         // It's a prefabricated lintel
                         if (prefabLintelSummary[wall.additionalLintelSize]) {
                             prefabLintelSummary[wall.additionalLintelSize] += wall.additionalLintelCount;
@@ -1724,20 +1768,13 @@
                 }
             });
 
-            return {
-                prefabLintels: Object.entries(prefabLintelSummary).map(([size, count]) => ({
-                    size,
-                    count
-                })),
-                concreteLintels: Object.entries(concreteLintelSummary).map(([type, data]) => ({
-                    type,
-                    count: data.count,
-                    walls: data.walls
-                }))
-            };
+            return Object.entries(prefabLintelSummary).map(([size, count]) => ({
+                size,
+                count
+            }));
         }
 
-        // Update summary section
+        // Update summary section (ปรับแก้ - เรียงลำดับหนาบาง และความยาว Lintel)
         function updateSummary() {
             if (walls.length === 0) {
                 return;
@@ -1764,18 +1801,26 @@
                 blocksByThickness[thickness] += parseInt(wall.blockCount);
             });
 
-            // Get lintel summary - updated to separate prefab and concrete
+            // Get lintel summary - only prefabricated lintels
             const lintelSummary = summarizeAllLintels(walls);
 
             // Update UI
             document.getElementById('totalArea').textContent = `${totals.totalArea.toFixed(2)} ตร.ม.`;
             document.getElementById('totalBlockCount').textContent = `${totals.totalBlockCount} ก้อน`;
 
-            // Update blocks by thickness
+            // Update blocks by thickness - เรียงลำดับความหนาจากบางไปหนา
             const blocksByThicknessElement = document.getElementById('blockCountByThickness');
             if (Object.keys(blocksByThickness).length > 0) {
+                // สร้างอาร์เรย์ของความหนาและเรียงลำดับ
+                const sortedThicknesses = Object.entries(blocksByThickness).sort((a, b) => {
+                    // แยกตัวเลขออกจากหน่วย
+                    const thicknessA = parseFloat(a[0].split(' ')[0]);
+                    const thicknessB = parseFloat(b[0].split(' ')[0]);
+                    return thicknessA - thicknessB; // เรียงจากบางไปหนา
+                });
+
                 let blocksByThicknessHtml = '<ul class="summary-list">';
-                Object.entries(blocksByThickness).forEach(([thickness, count]) => {
+                sortedThicknesses.forEach(([thickness, count]) => {
                     blocksByThicknessHtml += `<li class="summary-list-item"><strong>${thickness}</strong>: ${count} ก้อน</li>`;
                 });
                 blocksByThicknessHtml += '</ul>';
@@ -1784,11 +1829,36 @@
                 blocksByThicknessElement.innerHTML = '<p class="empty-message">ไม่มี</p>';
             }
 
-            // Update prefabricated lintel summary
+            // Update prefabricated lintel summary - เรียงลำดับตามความหนาและความยาว
             const lintelElement = document.getElementById('lintelSummary');
-            if (lintelSummary.prefabLintels.length > 0) {
+            if (lintelSummary.length > 0) {
+                // เรียงลำดับ Lintel ตามความหนาและความยาว
+                const sortedLintels = lintelSummary.sort((a, b) => {
+                    // แยกส่วนของ Lintel code
+                    const matchA = a.size.match(/L(\d+)x(\d+)x([\d.]+)/);
+                    const matchB = b.size.match(/L(\d+)x(\d+)x([\d.]+)/);
+
+                    if (matchA && matchB) {
+                        // ความหนา (เช่น 7.5)
+                        const thicknessA = parseFloat(matchA[3]);
+                        const thicknessB = parseFloat(matchB[3]);
+
+                        if (thicknessA !== thicknessB) {
+                            return thicknessA - thicknessB; // เรียงตามความหนาก่อน
+                        }
+
+                        // ความยาว (เช่น 350)
+                        const lengthA = parseInt(matchA[2]);
+                        const lengthB = parseInt(matchB[2]);
+                        return lengthA - lengthB; // เรียงตามความยาว
+                    }
+
+                    // ถ้าไม่สามารถแยกส่วนได้ ให้เรียงตามตัวอักษร
+                    return a.size.localeCompare(b.size);
+                });
+
                 let lintelHtml = '<ul class="summary-list">';
-                lintelSummary.prefabLintels.forEach(lintel => {
+                sortedLintels.forEach(lintel => {
                     lintelHtml += `<li class="summary-list-item"><strong>${lintel.size}</strong>: ${lintel.count} ท่อน</li>`;
                 });
                 lintelHtml += '</ul>';
@@ -1796,60 +1866,13 @@
             } else {
                 lintelElement.innerHTML = '<p class="empty-message">ไม่มี</p>';
             }
-
-            // Update concrete lintel and column summary
-            const concreteElement = document.getElementById('concreteSummary');
-            if (lintelSummary.concreteLintels.length > 0) {
-                let concreteHtml = '<ul class="summary-list">';
-                lintelSummary.concreteLintels.forEach(concrete => {
-                    // Process walls to show dimension details
-                    let wallDetails = '';
-                    if (concrete.walls && concrete.walls.length > 0) {
-                        // Group walls by common dimensions
-                        const dimensionsMap = {};
-
-                        concrete.walls.forEach(wall => {
-                            const key = `${wall.length.toFixed(2)}x${wall.height.toFixed(2)}`;
-                            if (!dimensionsMap[key]) {
-                                dimensionsMap[key] = {
-                                    length: wall.length,
-                                    height: wall.height,
-                                    count: 1,
-                                    locations: [`${wall.floor || ''} ${wall.grid || ''}`].filter(s => s.trim() !== '')
-                                };
-                            } else {
-                                dimensionsMap[key].count++;
-                                const location = `${wall.floor || ''} ${wall.grid || ''}`.trim();
-                                if (location !== '' && !dimensionsMap[key].locations.includes(location)) {
-                                    dimensionsMap[key].locations.push(location);
-                                }
-                            }
-                        });
-
-                        // Create dimension details
-                        const dimensionDetails = Object.values(dimensionsMap).map(dim => {
-                            let detail = `${dim.length.toFixed(2)}x${dim.height.toFixed(2)} ม.`;
-                            if (dim.count > 1) {
-                                detail += ` (${dim.count} แนว)`;
-                            }
-                            return detail;
-                        });
-
-                        if (dimensionDetails.length > 0) {
-                            wallDetails = ` - ${dimensionDetails.join(', ')}`;
-                        }
-                    }
-
-                    concreteHtml += `<li class="summary-list-item"><strong>${concrete.type}</strong>: ${concrete.count} ตำแหน่ง${wallDetails}</li>`;
-                });
-                concreteHtml += '</ul>';
-                concreteElement.innerHTML = concreteHtml;
-            } else {
-                concreteElement.innerHTML = '<p class="empty-message">ไม่มี</p>';
-            }
         }
 
-        // Print report function
+        // ===============================================
+        // SECTION 7: PRINTING REPORT FUNCTION
+        // ===============================================
+
+        // Print report function (ปรับแก้ - เรียงลำดับการแสดงผล Block และ Lintel)
         function printReport() {
             // Get project information
             const projectName = document.getElementById('projectName').value || 'ไม่ระบุชื่อโครงการ';
@@ -1884,222 +1907,215 @@
                 blocksByThickness[thickness] += parseInt(wall.blockCount);
             });
 
-            // Get lintel summary - separated into prefab and concrete
+            // Get lintel summary - only prefabricated lintels
             const lintelSummary = summarizeAllLintels(walls);
+
+            // เรียงลำดับความหนา Block จากบางไปหนา
+            const sortedThicknesses = Object.entries(blocksByThickness).sort((a, b) => {
+                const thicknessA = parseFloat(a[0].split(' ')[0]);
+                const thicknessB = parseFloat(b[0].split(' ')[0]);
+                return thicknessA - thicknessB;
+            });
+
+            // เรียงลำดับ Lintel ตามความหนาและความยาว
+            const sortedLintels = lintelSummary.sort((a, b) => {
+                const matchA = a.size.match(/L(\d+)x(\d+)x([\d.]+)/);
+                const matchB = b.size.match(/L(\d+)x(\d+)x([\d.]+)/);
+
+                if (matchA && matchB) {
+                    const thicknessA = parseFloat(matchA[3]);
+                    const thicknessB = parseFloat(matchB[3]);
+
+                    if (thicknessA !== thicknessB) {
+                        return thicknessA - thicknessB;
+                    }
+
+                    const lengthA = parseInt(matchA[2]);
+                    const lengthB = parseInt(matchB[2]);
+                    return lengthA - lengthB;
+                }
+
+                return a.size.localeCompare(b.size);
+            });
 
             // Create print window
             const printWindow = window.open('', '_blank');
 
             // Create print content
             let printContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>รายงานปริมาณวัสดุผนัง</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        margin: 20px;
-                    }
-                    h1 {
-                        color: #f97316;
-                        text-align: center;
-                        margin-bottom: 20px;
-                    }
-                    .project-info {
-                        margin-bottom: 20px;
-                        padding: 10px;
-                        border: 1px solid #ddd;
-                        background-color: #f8f8f8;
-                    }
-                    .project-info div {
-                        margin-bottom: 5px;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-bottom: 20px;
-                    }
-                    th, td {
-                        border: 1px solid #ddd;
-                        padding: 8px;
-                        text-align: left;
-                    }
-                    th {
-                        background-color: #666;
-                        color: #fff;
-                    }
-                    .summary-title {
-                        font-weight: bold;
-                        margin-top: 20px;
-                        margin-bottom: 10px;
-                    }
-                    .summary-value {
-                        margin-left: 20px;
-                        margin-bottom: 5px;
-                    }
-                    .footer {
-                        margin-top: 30px;
-                        text-align: center;
-                        font-size: 12px;
-                        color: #666;
-                    }
-                    .remark {
-                        color: #d35400;
-                        font-style: italic;
-                    }
-                </style>
-            </head>
-            <body>
-                <h1>รายงานปริมาณวัสดุผนัง</h1>
-                
-                <div class="project-info">
-                    <div><strong>ชื่อโครงการ:</strong> ${projectName}</div>
-                    <div><strong>ผู้ถอดแบบ:</strong> ${estimator}</div>
-                    <div><strong>วันที่:</strong> ${formattedDate}</div>
-                </div>
-                
-                <div class="summary-title">ข้อมูลสรุป:</div>
-                <div class="summary-value">พื้นที่รวม: ${totals.totalArea.toFixed(2)} ตร.ม.</div>
-                <div class="summary-value">จำนวน Q-CON Block ทั้งหมด: ${totals.totalBlockCount} ก้อน</div>
-                
-                <div class="summary-title">จำนวน Q-CON Block แยกตามความหนา:</div>
-            `;
-
-            // Add blocks by thickness
-            if (Object.keys(blocksByThickness).length > 0) {
-                Object.entries(blocksByThickness).forEach(([thickness, count]) => {
+<!DOCTYPE html>
+<html>
+<head>
+    <title>รายงานปริมาณวัสดุผนัง</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            color: #f97316;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .project-info {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f8f8f8;
+        }
+        .project-info div {
+            margin-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #666;
+            color: #fff;
+        }
+        .summary-title {
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .summary-value {
+            margin-left: 20px;
+            margin-bottom: 5px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .remark {
+            color: #d35400;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>รายงานปริมาณวัสดุผนัง</h1>
+    
+    <div class="project-info">
+        <div><strong>ชื่อโครงการ:</strong> ${projectName}</div>
+        <div><strong>ผู้ถอดแบบ:</strong> ${estimator}</div>
+        <div><strong>วันที่:</strong> ${formattedDate}</div>
+    </div>
+    
+    <div class="summary-title">ข้อมูลสรุป:</div>
+    <div class="summary-value">พื้นที่รวม: ${totals.totalArea.toFixed(2)} ตร.ม.</div>
+    <div class="summary-value">จำนวน Q-CON Block ทั้งหมด: ${totals.totalBlockCount} ก้อน</div>
+    
+    <div class="summary-title">จำนวน Q-CON Block แยกตามความหนา:</div>
+`;
+            // Add blocks by thickness - เรียงลำดับจากบางไปหนา
+            if (sortedThicknesses.length > 0) {
+                sortedThicknesses.forEach(([thickness, count]) => {
                     printContent += `<div class="summary-value">${thickness}: ${count} ก้อน</div>`;
                 });
             } else {
                 printContent += `<div class="summary-value">ไม่มี</div>`;
             }
 
-            // Add prefabricated lintel summary
+            // Add prefabricated lintel summary - เรียงลำดับตามความหนาและความยาว
             printContent += `
-                <div class="summary-title">ขนาด Lintel สำเร็จรูป:</div>
-            `;
+    <div class="summary-title">ขนาด Lintel สำเร็จรูป:</div>
+`;
 
-            if (lintelSummary.prefabLintels.length > 0) {
-                lintelSummary.prefabLintels.forEach(lintel => {
+            if (sortedLintels.length > 0) {
+                sortedLintels.forEach(lintel => {
                     printContent += `<div class="summary-value">${lintel.size}: ${lintel.count} ท่อน</div>`;
                 });
             } else {
                 printContent += `<div class="summary-value">ไม่มี</div>`;
             }
 
-            // Add concrete lintel and column summary
             printContent += `
-                <div class="summary-title">ขนาดทับหลังและเอ็นคสล.:</div>
-            `;
-
-            if (lintelSummary.concreteLintels.length > 0) {
-                lintelSummary.concreteLintels.forEach(concrete => {
-                    // Process walls to show dimension details
-                    let wallDetails = '';
-                    if (concrete.walls && concrete.walls.length > 0) {
-                        // Group walls by common dimensions
-                        const dimensionsMap = {};
-
-                        concrete.walls.forEach(wall => {
-                            const key = `${wall.length.toFixed(2)}x${wall.height.toFixed(2)}`;
-                            if (!dimensionsMap[key]) {
-                                dimensionsMap[key] = {
-                                    length: wall.length,
-                                    height: wall.height,
-                                    count: 1,
-                                    locations: [`${wall.floor || ''} ${wall.grid || ''}`].filter(s => s.trim() !== '')
-                                };
-                            } else {
-                                dimensionsMap[key].count++;
-                                const location = `${wall.floor || ''} ${wall.grid || ''}`.trim();
-                                if (location !== '' && !dimensionsMap[key].locations.includes(location)) {
-                                    dimensionsMap[key].locations.push(location);
-                                }
-                            }
-                        });
-
-                        // Create dimension details
-                        const dimensionDetails = Object.values(dimensionsMap).map(dim => {
-                            let detail = `${dim.length.toFixed(2)}x${dim.height.toFixed(2)} ม.`;
-                            if (dim.count > 1) {
-                                detail += ` (${dim.count} แนว)`;
-                            }
-                            return detail;
-                        });
-
-                        if (dimensionDetails.length > 0) {
-                            wallDetails = ` - ${dimensionDetails.join(', ')}`;
-                        }
-                    }
-
-                    printContent += `<div class="summary-value">${concrete.type}: ${concrete.count} ตำแหน่ง${wallDetails}</div>`;
-                });
-            } else {
-                printContent += `<div class="summary-value">ไม่มี</div>`;
-            }
-
-            printContent += `
-                <div class="summary-title">รายละเอียดผนัง:</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ลำดับ</th>
-                            <th>ชั้น</th>
-                            <th>Grid Line</th>
-                            <th>ความหนา Block</th>
-                            <th>ประเภทผนัง</th>
-                            <th>ความยาวผนัง</th>
-                            <th>ความสูงผนัง</th>
-                            <th>รหัสช่องเปิด</th>
-                            <th>จำนวน Block</th>
-                            <th>หมายเหตุ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+    <div class="summary-title">รายละเอียดผนัง:</div>
+    <table>
+        <thead>
+            <tr>
+                <th>ลำดับ</th>
+                <th>ชั้น</th>
+                <th>Grid Line</th>
+                <th>ความหนา Block</th>
+                <th>ประเภทผนัง</th>
+                <th>ความยาวผนัง</th>
+                <th>ความสูงผนัง</th>
+                <th>รหัสช่องเปิด</th>
+                <th>จำนวน Block</th>
+                <th>หมายเหตุ</th>
+            </tr>
+        </thead>
+        <tbody>
+`;
 
             // Add wall detail rows
             walls.forEach((wall, index) => {
+                        // Determine wall type display with opening type in parentheses if applicable
+                        let wallTypeDisplay = wall.wallType;
+                        if (wall.wallType === 'ผนังมีช่องเปิด') {
+                            wallTypeDisplay = `ผนังมีช่องเปิด (${wall.openingType === 'ช่องเปิดประตู' ? 'ประตู' : 'หน้าต่าง'})`;
+                        }
+
+                        // ใช้ customRemark ถ้ามี มิฉะนั้นใช้ remark ที่ระบบสร้าง
+                        let remarkContent = '';
+                        if (wall.customRemark) {
+                            remarkContent = wall.customRemark;
+                        } else if (wall.remark && !(wall.isFullWallLintel && wall.blockThickness === '7.5 cm.' &&
+                                wall.remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.") && !wall.remark.includes("ผนังที่มีพื้นที่เกินกำหนด"))) {
+                            remarkContent = wall.remark;
+                        }
+
                         printContent += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${wall.floor || '-'}</td>
-                        <td>${wall.gridLine || '-'}</td>
-                        <td>${wall.blockThickness}</td>
-                        <td>${wall.wallType}<br>${wall.wallLocation}</td>
-                        <td>${wall.wallLength} m.</td>
-                        <td>${wall.wallHeight} m.</td>
-                        <td>${wall.openingCode || '-'}</td>
-                        <td>${wall.blockCount}</td>
-                        <td>${wall.remark ? `<span class="remark">${wall.remark}</span>` : '-'}</td>
-                    </tr>
-                `;
-            });
+        <tr>
+            <td>${index + 1}</td>
+            <td>${wall.floor || '-'}</td>
+            <td>${wall.gridLine || '-'}</td>
+            <td>${wall.blockThickness}</td>
+            <td>${wallTypeDisplay}<br>${wall.wallLocation}</td>
+            <td>${wall.wallLength} m.</td>
+            <td>${wall.wallHeight} m.</td>
+            <td>${wall.openingCode || '-'}</td>
+            <td>${wall.blockCount}</td>
+            <td>${remarkContent ? `<span class="remark">${remarkContent}</span>` : '-'}</td>
+        </tr>
+    `;
+    });
 
-           printContent += `
-                    </tbody>
-                </table>
-                
-                <div class="footer">
-                    พิมพ์วันที่: ${new Date().toLocaleDateString('th-TH')}
-                </div>
-            </body>
-            </html>
-            `;
+    printContent += `
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            พิมพ์วันที่: ${new Date().toLocaleDateString('th-TH')}
+        </div>
+    </body>
+    </html>
+    `;
 
-            printWindow.document.open();
-            printWindow.document.write(printContent);
-            printWindow.document.close();
+    printWindow.document.open();
+    printWindow.document.write(printContent);
+    printWindow.document.close();
 
-            // Wait for content to load
-            setTimeout(() => {
-                printWindow.print();
-            }, 500);
-        }
+    // Wait for content to load
+    setTimeout(() => {
+        printWindow.print();
+    }, 500);
+}
 
-        // Initialize the form visibility
-        updateFormVisibility();
+// Initialize the form visibility on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateFormVisibility();
+});
     </script>
 </body>
 
