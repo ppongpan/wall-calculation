@@ -1560,8 +1560,19 @@
             document.getElementById('wallLength').value = wall.wallLength;
             document.getElementById('wallHeight').value = wall.wallHeight;
 
+            // แก้ไขส่วนนี้: ตรวจสอบหมายเหตุจากทั้ง customRemark และ remark
+            // ถ้ามี customRemark ใช้ก่อน มิฉะนั้นใช้ remark ที่ระบบสร้าง
+            if (wall.customRemark) {
+                document.getElementById('wallRemark').value = wall.customRemark;
+            } else if (wall.remark) {
+                // ในกรณีที่เป็น remark จากระบบ ให้ใช้ค่านี้
+                document.getElementById('wallRemark').value = wall.remark;
+            } else {
+                document.getElementById('wallRemark').value = '';
+            }
+
             // นำข้อมูลหมายเหตุมาแสดง
-            document.getElementById('wallRemark').value = wall.customRemark || '';
+            // document.getElementById('wallRemark').value = wall.customRemark || '';
 
             // Set wall type and location
             setWallType(wall.wallType);
