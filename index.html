@@ -557,10 +557,6 @@
     </footer>
 
     <script>
-        // ===============================================
-        // SECTION 1: VARIABLE DECLARATIONS AND CONSTANTS
-        // ===============================================
-
         // Wall data and saved openings state
         let walls = [];
         let savedOpenings = {};
@@ -644,11 +640,6 @@
             2.95: 3.3,
             3.0: 3.3
         };
-
-        // ===============================================
-        // SECTION 2: EVENT HANDLERS AND UI FUNCTIONS
-        // ===============================================
-
         // Set today's date as default for the date input
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
@@ -718,11 +709,6 @@
         // Listen for wall dimension changes
         document.getElementById('wallLength').addEventListener('input', updateFormVisibility);
         document.getElementById('wallHeight').addEventListener('input', updateFormVisibility);
-
-        // ===============================================
-        // SECTION 3: WALL TYPE AND PROPERTIES SELECTION FUNCTIONS
-        // ===============================================
-
         // Handle wall type selection
         function setWallType(type) {
             currentWallType = type;
@@ -786,11 +772,6 @@
 
             updateFormVisibility();
         }
-
-        // ===============================================
-        // SECTION 4: MATERIAL CALCULATION FUNCTIONS
-        // ===============================================
-
         // Check if wall area exceeds maximum allowed
         function checkWallArea(area, blockThickness, wallLocation) {
             return area > MAX_AREAS[wallLocation][blockThickness];
@@ -899,7 +880,6 @@
 
             return null;
         }
-
         // Calculate wall materials - Updated based on new requirements
         function calculateWallMaterials() {
             const blockThickness = document.getElementById('blockThickness').value;
@@ -930,7 +910,7 @@
             let remark = "";
             let isFullWallLintel = false;
 
-            // Check if area exceeds maximum allowed
+            // Calculate gross area and check if it exceeds maximum allowed
             exceedsMaxArea = checkWallArea(totalWallArea, blockThickness, wallLocation);
 
             // Check if both dimensions exceed 4m - must use concrete column in this case
@@ -938,23 +918,23 @@
 
             // Case 1: Solid Wall (all thicknesses)
             if (currentWallType === 'ผนังทึบ') {
+                // Calculate total area (no openings in this case)
+                area = totalWallArea;
+
                 // Check if need concrete divider due to length or height
                 let needConcreteDivider = false;
 
-                // FIX: Only add remark about exceeding dimension if the area also exceeds maximum
+                // Only add remark about exceeding dimension if the area also exceeds maximum
                 if (wallLength > maxLintelLength || wallHeight > maxLintelLength) {
                     needConcreteDivider = true;
                     // Only create remark if area exceeds max
                     if (exceedsMaxArea) {
-                        remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวหรือความสูงผนังเกิน ${maxLintelLength} ม. ต้องหล่อเอ็น คสล.`;
+                        remark = `*ผนังที่มีพื้นที่เกินกำหนด*`;
                     }
                 } else if (exceedsMaxArea) {
                     // Only add "ผนังที่มีพื้นที่เกินกำหนด" if area exceeds max
-                    remark = "ผนังที่มีพื้นที่เกินกำหนด";
+                    remark = "*ผนังที่มีพื้นที่เกินกำหนด*";
                 }
-
-                // Calculate total area (no openings in this case)
-                area = totalWallArea;
 
                 // If area exceeds max or concrete divider is needed, add wall divider as selected
                 if (exceedsMaxArea || needConcreteDivider) {
@@ -970,7 +950,7 @@
                                     additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
                                     additionalLintelCount = 1;
                                     if (exceedsMaxArea) {
-                                        remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.`;
+                                        remark = `*ผนังที่มีพื้นที่เกินกำหนด*`;
                                     }
                                 } else {
                                     additionalLintelSize = `L20x${lintelLength}x7.5`;
@@ -999,7 +979,7 @@
                                     additionalLintelSize = "เอ็นคสล.";
                                     additionalLintelCount = 1;
                                     if (exceedsMaxArea) {
-                                        remark = `ผนังที่มีพื้นที่เกินกำหนด, ความสูงผนังเกิน 4 ม. ต้องใช้เอ็นคสล.`;
+                                        remark = `*ผนังที่มีพื้นที่เกินกำหนด*`;
                                     }
                                 } else {
                                     additionalLintelSize = `L20x${lintelLength}x7.5`;
@@ -1033,18 +1013,14 @@
                                 additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
                                 additionalLintelCount = 1;
                                 if (exceedsMaxArea) {
-                                    remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.`;
+                                    remark = `*ผนังที่มีพื้นที่เกินกำหนด*`;
                                 }
                             }
                         }
                     } else {
                         // เอ็นคสล.
-                        if (exceedsMaxArea && !remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.")) {
-                            if (remark) {
-                                remark = `${remark}, แบ่งพื้นที่ผนังด้วยเอ็นคสล.`;
-                            } else {
-                                remark = "แบ่งพื้นที่ผนังด้วยเอ็นคสล.";
-                            }
+                        if (exceedsMaxArea) {
+                            // ไม่เพิ่มข้อความ "แบ่งพื้นที่ผนังด้วยเอ็นคสล." ใน remark
                         }
 
                         // Clear all Lintel data when using เอ็นคสล.
@@ -1058,198 +1034,190 @@
                 // Calculate opening area
                 openingArea = openingWidth * openingHeight;
 
-                // Check if need concrete divider due to length or height
+                // Check if need concrete divider due to length or height exceeding max
                 let needConcreteDivider = false;
-
-                // FIX: Only add remark about exceeding dimension if the area also exceeds maximum
                 if (wallLength > maxLintelLength || wallHeight > maxLintelLength) {
                     needConcreteDivider = true;
                     if (exceedsMaxArea) {
-                        remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวหรือความสูงผนังเกิน ${maxLintelLength} ม. ต้องหล่อเอ็น คสล.`;
+                        remark = `*ผนังที่มีพื้นที่เกินกำหนด*`;
                     }
                 }
 
+                // ส่วนการคำนวณ Lintel สำหรับผนังที่มีช่องเปิด
                 if (thicknessValue === 7.5) {
+                    // สำหรับผนัง 7.5 cm. ที่มีช่องเปิด
                     if (currentLintelOrientation === 'แนวตั้ง') {
-                        // Vertical orientation for 7.5 cm wall with opening
+                        // แนวตั้งสำหรับผนัง 7.5 cm. ที่มีช่องเปิด
                         let verticalLength = Math.ceil(wallHeight * 100);
 
                         if (verticalLength > 400) {
                             verticalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความสูงผนัง";
-                            verticalLintelCount = 2; // Two sides of opening
+                            verticalLintelCount = 2; // ด้านข้างช่องเปิดทั้งสองด้าน
                             if (exceedsMaxArea) {
-                                remark = `ผนังที่มีพื้นที่เกินกำหนด, ความสูงผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.`;
+                                remark = `*ผนังที่มีพื้นที่เกินกำหนด*`;
                             }
                         } else {
                             verticalLintelSize = `L20x${verticalLength}x7.5`;
-                            verticalLintelCount = 2; // Always 2 vertical Lintels for 7.5cm
+                            verticalLintelCount = 2; // ใช้ 2 ท่อนสำหรับด้านข้างช่องเปิด
 
-                            // Check if this is full wall Lintel
+                            // ตรวจสอบว่าเป็น Lintel ตลอดความสูงผนังหรือไม่
                             if (verticalLintelCount > 0) {
                                 isFullWallLintel = true;
                             }
                         }
 
-                        // Add horizontal Lintel
+                        // เพิ่ม Lintel แนวนอน
                         let horizontalLength = Math.ceil(openingWidth * 100);
 
                         if (currentOpeningType === 'ช่องเปิดประตู') {
-                            // Door opening with vertical Lintel - only top horizontal Lintel
+                            // ช่องเปิดประตูกับ Lintel แนวตั้ง - ใช้ Lintel แนวนอนด้านบนเท่านั้น
                             horizontalLintelSize = `L20x${horizontalLength}x7.5`;
                             horizontalLintelCount = 1;
                         } else {
-                            // Window opening with vertical Lintel - top and bottom horizontal Lintels
+                            // ช่องเปิดหน้าต่างกับ Lintel แนวตั้ง - ใช้ Lintel แนวนอนด้านบนและล่าง
                             horizontalLintelSize = `L20x${horizontalLength}x7.5`;
                             horizontalLintelCount = 2;
                         }
 
-                        // Calculate lintel area
+                        // คำนวณพื้นที่ Lintel
                         lintelArea = calculateLintelArea(verticalLintelSize, verticalLintelCount) +
                             calculateLintelArea(horizontalLintelSize, horizontalLintelCount);
                     } else {
-                        // Horizontal orientation for 7.5 cm wall with opening
+                        // แนวนอนสำหรับผนัง 7.5 cm. ที่มีช่องเปิด
                         let horizontalLength = Math.ceil(wallLength * 100);
 
                         if (horizontalLength > 400) {
                             horizontalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
                             horizontalLintelCount = (currentOpeningType === 'ช่องเปิดประตู') ? 1 : 2;
                             if (exceedsMaxArea) {
-                                remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล.`;
+                                remark = `*ผนังที่มีพื้นที่เกินกำหนด*`;
                             }
                         } else {
                             horizontalLintelSize = `L20x${horizontalLength}x7.5`;
 
                             if (currentOpeningType === 'ช่องเปิดประตู') {
-                                // Door opening with horizontal Lintel
-                                horizontalLintelCount = 1; // Only top lintel for door
+                                // ช่องเปิดประตูกับ Lintel แนวนอน
+                                horizontalLintelCount = 1; // ใช้ Lintel ด้านบนเท่านั้นสำหรับประตู
                             } else {
-                                // Window opening with horizontal Lintel
-                                horizontalLintelCount = 2; // Top and bottom lintels for window
+                                // ช่องเปิดหน้าต่างกับ Lintel แนวนอน
+                                horizontalLintelCount = 2; // ใช้ Lintel ด้านบนและล่างสำหรับหน้าต่าง
                             }
 
-                            // Check if this is full wall Lintel
+                            // ตรวจสอบว่าเป็น Lintel ตลอดความยาวผนังหรือไม่
                             if (horizontalLintelCount > 0) {
                                 isFullWallLintel = true;
                             }
                         }
 
-                        // Add vertical Lintel for windows
+                        // เพิ่ม Lintel แนวตั้งสำหรับหน้าต่าง
                         if (currentOpeningType === 'ช่องเปิดหน้าต่าง') {
                             let verticalLength = Math.ceil(openingHeight * 100);
                             additionalLintelSize = `L20x${verticalLength}x7.5`;
-                            additionalLintelCount = 2; // Two vertical Lintels at window sides
+                            additionalLintelCount = 2; // ด้านข้างหน้าต่างทั้งสองด้าน
                         }
 
-                        // Calculate lintel area
+                        // คำนวณพื้นที่ Lintel
                         lintelArea = calculateLintelArea(horizontalLintelSize, horizontalLintelCount) +
                             calculateLintelArea(additionalLintelSize, additionalLintelCount);
                     }
                 } else {
-                    // Wall with opening, block thickness > 7.5cm
-                    // Find appropriate lintel length based on opening width
+                    // สำหรับผนังที่หนาเกิน 7.5 cm. ที่มีช่องเปิด
+                    // คำนวณความยาว Lintel ที่เหมาะสมตามความกว้างช่องเปิด
                     const lintelLength = getLintelLength(openingWidth);
 
-                    if (wallLength > 3.6 || needConcreteDivider) {
-                        horizontalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนังเหนือช่องเปิด";
+                    // แก้ไขตรงนี้: ใช้ Lintel สำเร็จรูปเหนือช่องเปิดได้ ถ้าพื้นที่ไม่เกินกำหนด
+                    // หรือความยาวผนังไม่เกิน 3.6 เมตร
+                    if (exceedsMaxArea && wallLength > 3.6) {
+                        // ถ้าพื้นที่ผนังเกินกำหนดและผนังยาวเกิน 3.6 เมตร ให้ใช้เอ็นคสล.
+                        horizontalLintelSize = "เอ็นคสล.";
                         horizontalLintelCount = 1;
-                        if (exceedsMaxArea) {
-                            remark = `ผนังที่มีพื้นที่เกินกำหนด, ความยาวผนังเกิน ${maxLintelLength} ม. ต้องหล่อทับหลัง คสล.`;
-                        }
+                        remark = `*ผนังที่มีพื้นที่เกินกำหนด*`;
                     } else {
+                        // ใช้ Lintel สำเร็จรูป 1 ท่อนเหนือช่องเปิด
                         horizontalLintelSize = `L20x${Math.ceil(lintelLength * 100)}x${thicknessValue}`;
                         horizontalLintelCount = 1;
 
-                        // Calculate lintel area
+                        // คำนวณพื้นที่ Lintel
                         lintelArea = calculateLintelArea(horizontalLintelSize, horizontalLintelCount);
                     }
                 }
 
-                // Calculate net area (total area - opening area - lintel area)
+                // คำนวณพื้นที่สุทธิ (พื้นที่ทั้งหมด - พื้นที่ช่องเปิด - พื้นที่ Lintel)
                 area = totalWallArea - openingArea - lintelArea;
 
-                // Check if net area exceeds maximum allowed
+                // ตรวจสอบว่าพื้นที่สุทธิเกินพื้นที่สูงสุดที่กำหนดหรือไม่
                 exceedsMaxArea = checkWallArea(area, blockThickness, wallLocation);
 
-                // Update remark if area exceeds maximum
+                // อัปเดตหมายเหตุหากพื้นที่เกินกำหนด
                 if (exceedsMaxArea && !remark) {
-                    remark = "ผนังที่มีพื้นที่เกินกำหนด";
-                } else if (exceedsMaxArea && !remark.includes("ผนังที่มีพื้นที่เกินกำหนด")) {
-                    remark = `ผนังที่มีพื้นที่เกินกำหนด, ${remark}`;
+                    remark = "*ผนังที่มีพื้นที่เกินกำหนด*";
+                } else if (exceedsMaxArea && !remark.includes("*ผนังที่มีพื้นที่เกินกำหนด*")) {
+                    remark = `*ผนังที่มีพื้นที่เกินกำหนด*`;
                 }
-                // If area exceeds max or requires concrete divider, add appropriate reinforcement
+
+                // หากพื้นที่เกินกำหนดหรือจำเป็นต้องมีคานคอนกรีต ให้เพิ่ม reinforcement ที่เหมาะสม
                 if (exceedsMaxArea || needConcreteDivider) {
                     if (wallDivider === 'Lintel' && !needConcreteDivider && !bothDimensionsExceed4m) {
-                        // Add additional reinforcement Lintels
+                        // เพิ่ม Lintel เสริมแรง
                         if (thicknessValue !== 7.5 && wallLength > 3.6) {
-                            // For walls with length > 3.6m, use concrete cast lintel
+                            // สำหรับผนังที่ยาวเกิน 3.6 เมตรและหนาเกิน 7.5 ซม.
                             if (additionalLintelSize === "" || additionalLintelCount === 0) {
-                                additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
+                                // ถ้าพื้นที่เกินกำหนดและความยาวผนังเกิน 3.6 เมตร ให้ใช้เอ็นคสล.
+                                additionalLintelSize = "เอ็นคสล.";
                                 additionalLintelCount = 1;
-                                if (!remark.includes("ความยาวผนังเกิน 3.6 ม.")) {
-                                    if (remark) {
-                                        remark = `${remark}, ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.`;
-                                    } else if (exceedsMaxArea) {
-                                        remark = "ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.";
-                                    }
+                                if (exceedsMaxArea) {
+                                    remark = "*ผนังที่มีพื้นที่เกินกำหนด*";
                                 }
                             }
                         } else if (additionalLintelSize === "" || additionalLintelCount === 0) {
-                            // Add reinforcement based on wall dimensions
+                            // เพิ่ม reinforcement ตามขนาดผนัง
                             if (wallLength <= wallHeight) {
-                                // Add horizontal reinforcement
+                                // เพิ่ม Lintel แนวนอน
                                 const size = thicknessValue === 7.5 ? "7.5" : thicknessValue.toString();
                                 let lintelLength = Math.ceil(wallLength * 100);
 
                                 if ((thicknessValue === 7.5 && lintelLength > 400) || (thicknessValue !== 7.5 && lintelLength > 360)) {
-                                    additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความยาวผนัง";
+                                    // ถ้าความยาวผนังเกินขีดจำกัด ให้ใช้เอ็นคสล.
+                                    additionalLintelSize = "เอ็นคสล.";
                                     additionalLintelCount = 1;
-                                    const exceedRemark = thicknessValue === 7.5 ?
-                                        "ความยาวผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล." :
-                                        "ความยาวผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.";
-                                    if (remark) {
-                                        remark = `${remark}, ${exceedRemark}`;
-                                    } else if (exceedsMaxArea) {
-                                        remark = exceedRemark;
+                                    if (exceedsMaxArea) {
+                                        remark = "*ผนังที่มีพื้นที่เกินกำหนด*";
                                     }
                                 } else {
                                     additionalLintelSize = `L20x${lintelLength}x${size}`;
                                     additionalLintelCount = Math.ceil(wallHeight / 3) - horizontalLintelCount;
                                     if (additionalLintelCount <= 0) additionalLintelCount = 0;
                                     else {
-                                        // Update lintel area with additional lintels
+                                        // อัปเดตพื้นที่ Lintel ด้วย Lintel เพิ่มเติม
                                         lintelArea += calculateLintelArea(additionalLintelSize, additionalLintelCount);
 
-                                        // Check if this is full wall Lintel
+                                        // ตรวจสอบว่าเป็น Lintel ตลอดผนังหรือไม่
                                         if ((additionalLintelCount + horizontalLintelCount) * 3 >= wallHeight) {
                                             isFullWallLintel = true;
                                         }
                                     }
                                 }
                             } else {
-                                // Add vertical reinforcement
+                                // เพิ่ม Lintel แนวตั้ง
                                 const size = thicknessValue === 7.5 ? "7.5" : thicknessValue.toString();
                                 let lintelLength = Math.ceil(wallHeight * 100);
 
                                 if ((thicknessValue === 7.5 && lintelLength > 400) || (thicknessValue !== 7.5 && lintelLength > 360)) {
-                                    additionalLintelSize = "หล่อทับหลังคสล.ยาวเท่าความสูงผนัง";
+                                    // ถ้าความสูงผนังเกินขีดจำกัด ให้ใช้เอ็นคสล.
+                                    additionalLintelSize = "เอ็นคสล.";
                                     additionalLintelCount = 1;
-                                    const exceedRemark = thicknessValue === 7.5 ?
-                                        "ความสูงผนังเกิน 4 ม. ต้องหล่อทับหลัง คสล." :
-                                        "ความสูงผนังเกิน 3.6 ม. ต้องหล่อทับหลัง คสล.";
-                                    if (remark) {
-                                        remark = `${remark}, ${exceedRemark}`;
-                                    } else if (exceedsMaxArea) {
-                                        remark = exceedRemark;
+                                    if (exceedsMaxArea) {
+                                        remark = "*ผนังที่มีพื้นที่เกินกำหนด*";
                                     }
                                 } else {
                                     additionalLintelSize = `L20x${lintelLength}x${size}`;
                                     additionalLintelCount = Math.ceil(wallLength / 3) - (verticalLintelCount > 0 ? 2 : 0);
                                     if (additionalLintelCount <= 0) additionalLintelCount = 0;
                                     else {
-                                        // Update lintel area with additional lintels
+                                        // อัปเดตพื้นที่ Lintel ด้วย Lintel เพิ่มเติม
                                         lintelArea += calculateLintelArea(additionalLintelSize, additionalLintelCount);
 
-                                        // Check if this is full wall Lintel
+                                        // ตรวจสอบว่าเป็น Lintel ตลอดผนังหรือไม่
                                         if ((additionalLintelCount + (verticalLintelCount > 0 ? 2 : 0)) * 3 >= wallLength) {
                                             isFullWallLintel = true;
                                         }
@@ -1258,16 +1226,12 @@
                             }
                         }
                     } else {
-                        // เอ็นคสล.
-                        if (!remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.")) {
-                            if (remark) {
-                                remark = `${remark}, แบ่งพื้นที่ผนังด้วยเอ็นคสล.`;
-                            } else {
-                                remark = "แบ่งพื้นที่ผนังด้วยเอ็นคสล.";
-                            }
+                        // กรณีใช้เอ็นคสล.
+                        if (exceedsMaxArea) {
+                            // ไม่เพิ่มข้อความ "แบ่งพื้นที่ผนังด้วยเอ็นคสล." ใน remark เพราะต้องการแสดงเฉพาะ "*ผนังที่มีพื้นที่เกินกำหนด*"
                         }
 
-                        // Clear all Lintel data when using concrete instead
+                        // ล้างข้อมูล Lintel ทั้งหมดเมื่อใช้เอ็นคสล.
                         if (wallDivider === 'เอ็นคสล.') {
                             verticalLintelSize = "";
                             verticalLintelCount = 0;
@@ -1276,31 +1240,42 @@
                             additionalLintelSize = "";
                             additionalLintelCount = 0;
 
-                            // Reset lintel area when using concrete instead
+                            // รีเซ็ตพื้นที่ Lintel เมื่อใช้เอ็นคสล.
                             lintelArea = 0;
                         }
                     }
                 }
             }
 
-            // If Lintel covers the entire wall (height or length) and is 7.5 cm thickness,
-            // don't include remark about dividing area with เอ็นคสล., but keep "ผนังที่มีพื้นที่เกินกำหนด" if it exists
-            if (isFullWallLintel && thicknessValue === 7.5 && remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.")) {
-                if (remark.includes("ผนังที่มีพื้นที่เกินกำหนด")) {
-                    remark = "ผนังที่มีพื้นที่เกินกำหนด";
+            // ถ้า Lintel ครอบคลุมทั้งผนัง (ความสูงหรือความยาว) และเป็น 7.5 ซม.
+            if (isFullWallLintel && thicknessValue === 7.5) {
+                if (exceedsMaxArea) {
+                    remark = "*ผนังที่มีพื้นที่เกินกำหนด*";
                 } else {
                     remark = "";
                 }
             }
 
-            // Recalculate area with appropriate deductions
+            // กรณีที่ผนังมีพื้นที่ไม่เกินข้อกำหนด และใช้ Lintel ตามเงื่อนไขช่องเปิด
+            if (!exceedsMaxArea && (currentWallType === 'ผนังมีช่องเปิด')) {
+                // ตรวจสอบว่าใช้ Lintel ตามเงื่อนไขช่องเปิดหรือไม่
+                const hasOpeningLintel = (horizontalLintelSize && horizontalLintelCount > 0) ||
+                    (verticalLintelSize && verticalLintelCount > 0);
+
+                if (hasOpeningLintel) {
+                    // ถ้าใช้ Lintel ตามเงื่อนไขช่องเปิด ไม่ต้องแสดงหมายเหตุเกี่ยวกับเอ็นคสล.
+                    remark = "";
+                }
+            }
+
+            // คำนวณพื้นที่ใหม่พร้อมหักลบที่เหมาะสม
             if (currentWallType === 'ผนังทึบ') {
                 area = totalWallArea - lintelArea;
             } else {
                 area = totalWallArea - openingArea - lintelArea;
             }
 
-            // Calculate block count based on net area (standard: 8.33 blocks per sq.m)
+            // คำนวณจำนวนบล็อคตามพื้นที่สุทธิ (มาตรฐาน: 8.33 บล็อคต่อตร.ม.)
             blockCount = Math.ceil(area * 8.33);
 
             return {
@@ -1321,15 +1296,11 @@
                 remark,
                 bothDimensionsExceed4m,
                 isFullWallLintel,
-                blockThickness, // Include block thickness for grouping by thickness
-                wallLength, // Include actual wall dimensions for concrete length calculations
+                blockThickness,
+                wallLength,
                 wallHeight
             };
         }
-
-        // ===============================================
-        // SECTION 5: WALL MANAGEMENT FUNCTIONS (ADD/EDIT/REMOVE)
-        // ===============================================
 
         // Add wall to the list
         function addWall() {
@@ -1438,28 +1409,58 @@
             wallData.openingCode = document.getElementById('openingCode').value;
 
             // แก้ไขเพิ่มเติม: แปลงทับหลังคสล. เป็นเอ็นคสล. ในข้อมูลที่แสดง
+            // สำหรับ additionalLintelSize
             if (wallData.additionalLintelSize && wallData.additionalLintelSize.includes("หล่อทับหลังคสล.")) {
                 // เก็บค่าเดิมไว้ในฟิลด์แยก
                 wallData.originalLintelSize = wallData.additionalLintelSize;
 
-                // เปลี่ยนเป็นเอ็นคสล.
-                wallData.additionalLintelSize = "เอ็นคสล.";
+                // ตรวจสอบเงื่อนไขตามความหนาและความกว้างช่องเปิด
+                const openingWidth = parseFloat(wallData.openingWidth) || 0;
+                const blockThickness = wallData.blockThickness;
+
+                if (blockThickness === '12.5 cm.' && openingWidth <= 3.0 && wallData.wallType === 'ผนังมีช่องเปิด') {
+                    // กรณีผนัง 12.5 cm. มีช่องเปิดไม่เกิน 3 เมตร ให้ใช้ L20x150x12.5
+                    wallData.additionalLintelSize = "L20x150x12.5";
+                } else {
+                    // กรณีอื่นๆ แปลงเป็นเอ็นคสล.
+                    wallData.additionalLintelSize = "เอ็นคสล.";
+                }
             }
 
-            if (wallData.verticalLintelSize && wallData.verticalLintelSize.includes("หล่อทับหลังคสล.")) {
-                // เก็บค่าเดิมไว้ในฟิลด์แยก
-                wallData.originalVerticalLintelSize = wallData.verticalLintelSize;
-
-                // เปลี่ยนเป็นเอ็นคสล.
-                wallData.verticalLintelSize = "เอ็นคสล.";
-            }
-
+            // สำหรับ horizontalLintelSize
             if (wallData.horizontalLintelSize && wallData.horizontalLintelSize.includes("หล่อทับหลังคสล.")) {
                 // เก็บค่าเดิมไว้ในฟิลด์แยก
                 wallData.originalHorizontalLintelSize = wallData.horizontalLintelSize;
 
-                // เปลี่ยนเป็นเอ็นคสล.
-                wallData.horizontalLintelSize = "เอ็นคสล.";
+                // ตรวจสอบเงื่อนไขตามความหนาและความกว้างช่องเปิด
+                const openingWidth = parseFloat(wallData.openingWidth) || 0;
+                const blockThickness = wallData.blockThickness;
+
+                if (blockThickness === '12.5 cm.' && openingWidth <= 3.0 && wallData.wallType === 'ผนังมีช่องเปิด') {
+                    // กรณีผนัง 12.5 cm. มีช่องเปิดไม่เกิน 3 เมตร ให้ใช้ L20x150x12.5
+                    wallData.horizontalLintelSize = "L20x150x12.5";
+                } else {
+                    // กรณีอื่นๆ แปลงเป็นเอ็นคสล.
+                    wallData.horizontalLintelSize = "เอ็นคสล.";
+                }
+            }
+
+            // สำหรับ verticalLintelSize
+            if (wallData.verticalLintelSize && wallData.verticalLintelSize.includes("หล่อทับหลังคสล.")) {
+                // เก็บค่าเดิมไว้ในฟิลด์แยก
+                wallData.originalVerticalLintelSize = wallData.verticalLintelSize;
+
+                // ตรวจสอบเงื่อนไขตามความหนาและความกว้างช่องเปิด
+                const openingHeight = parseFloat(wallData.openingHeight) || 0;
+                const blockThickness = wallData.blockThickness;
+
+                if (blockThickness === '12.5 cm.' && openingHeight <= 3.0 && wallData.wallType === 'ผนังมีช่องเปิด') {
+                    // กรณีผนัง 12.5 cm. มีความสูงช่องเปิดไม่เกิน 3 เมตร ให้ใช้ L20x150x12.5
+                    wallData.verticalLintelSize = "L20x150x12.5";
+                } else {
+                    // กรณีอื่นๆ แปลงเป็นเอ็นคสล.
+                    wallData.verticalLintelSize = "เอ็นคสล.";
+                }
             }
 
             // If lintel count is 0, remove the lintel size
@@ -1571,9 +1572,6 @@
                 document.getElementById('wallRemark').value = '';
             }
 
-            // นำข้อมูลหมายเหตุมาแสดง
-            // document.getElementById('wallRemark').value = wall.customRemark || '';
-
             // Set wall type and location
             setWallType(wall.wallType);
             setWallLocation(wall.wallLocation);
@@ -1635,10 +1633,6 @@
             });
         }
 
-        // ===============================================
-        // SECTION 6: UI UPDATE FUNCTIONS AND SUMMARY CALCULATIONS
-        // ===============================================
-
         // Update wall list table
         function updateWallList() {
             const tableBody = document.getElementById('wallListBody');
@@ -1698,8 +1692,7 @@
                 let remarkContent = '';
                 if (wall.customRemark) {
                     remarkContent = wall.customRemark;
-                } else if (wall.remark && !(wall.isFullWallLintel && wall.blockThickness === '7.5 cm.' &&
-                        wall.remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.") && !wall.remark.includes("ผนังที่มีพื้นที่เกินกำหนด"))) {
+                } else if (wall.remark) {
                     remarkContent = wall.remark;
                 }
 
@@ -1712,32 +1705,32 @@
                 }
 
                 row.innerHTML = `
-    <td>${index + 1}</td>
-    <td>${wall.floor || '-'}</td>
-    <td>${wall.gridLine || '-'}</td>
-    <td>${wall.blockThickness}</td>
-    <td>${wallTypeDisplay}<br>${wall.wallLocation}</td>
-    <td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallLength + '</span>' : wall.wallLength}</td>
-    <td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallHeight + '</span>' : wall.wallHeight}</td>
-    <td>${wall.openingCode || '-'}</td>
-    <td>${wall.blockCount}</td>
-    <td>
-        ${verticalLintelHtml}
-        ${horizontalLintelHtml}
-        ${additionalLintelHtml}
-    </td>
-    <td>
-        ${verticalLintelCountHtml}
-        ${horizontalLintelCountHtml}
-        ${additionalLintelCountHtml}
-    </td>
-    <td>${remarkHtml}</td>
-    <td>
-        <div class="btn-group">
-            <button onclick="editWall(${wall.id})" class="btn btn-primary" style="padding: 2px 8px; margin-right: 5px;">แก้ไข</button>
-            <button onclick="removeWall(${wall.id})" class="btn btn-secondary" style="padding: 2px 8px;">ลบ</button>
-        </div>
-    </td>
+<td>${index + 1}</td>
+<td>${wall.floor || '-'}</td>
+<td>${wall.gridLine || '-'}</td>
+<td>${wall.blockThickness}</td>
+<td>${wallTypeDisplay}<br>${wall.wallLocation}</td>
+<td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallLength + '</span>' : wall.wallLength}</td>
+<td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallHeight + '</span>' : wall.wallHeight}</td>
+<td>${wall.openingCode || '-'}</td>
+<td>${wall.blockCount}</td>
+<td>
+    ${verticalLintelHtml}
+    ${horizontalLintelHtml}
+    ${additionalLintelHtml}
+</td>
+<td>
+    ${verticalLintelCountHtml}
+    ${horizontalLintelCountHtml}
+    ${additionalLintelCountHtml}
+</td>
+<td>${remarkHtml}</td>
+<td>
+    <div class="btn-group">
+        <button onclick="editWall(${wall.id})" class="btn btn-primary" style="padding: 2px 8px; margin-right: 5px;">แก้ไข</button>
+        <button onclick="removeWall(${wall.id})" class="btn btn-secondary" style="padding: 2px 8px;">ลบ</button>
+    </div>
+</td>
 `;
 
                 tableBody.appendChild(row);
@@ -1799,6 +1792,7 @@
                 count
             }));
         }
+
         // Update summary section (ปรับแก้ - เรียงลำดับหนาบาง และความยาว Lintel)
         function updateSummary() {
             if (walls.length === 0) {
@@ -1892,10 +1886,6 @@
                 lintelElement.innerHTML = '<p class="empty-message">ไม่มี</p>';
             }
         }
-
-        // ===============================================
-        // SECTION 7: PRINTING REPORT FUNCTION
-        // ===============================================
 
         // Print report function (ปรับแก้ - เรียงลำดับการแสดงผล Block และ Lintel)
         function printReport() {
@@ -2095,8 +2085,7 @@
                         let remarkContent = '';
                         if (wall.customRemark) {
                             remarkContent = wall.customRemark;
-                        } else if (wall.remark && !(wall.isFullWallLintel && wall.blockThickness === '7.5 cm.' &&
-                                wall.remark.includes("แบ่งพื้นที่ผนังด้วยเอ็นคสล.") && !wall.remark.includes("ผนังที่มีพื้นที่เกินกำหนด"))) {
+                        } else if (wall.remark) {
                             remarkContent = wall.remark;
                         }
 
