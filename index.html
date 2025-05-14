@@ -1704,6 +1704,18 @@
                     wallTypeDisplay = `ผนังมีช่องเปิด (${wall.openingType === 'ช่องเปิดประตู' ? 'ประตู' : 'หน้าต่าง'})`;
                 }
 
+                // Format opening code with dimensions in parentheses
+                let openingCodeDisplay = '-';
+                if (wall.openingCode) {
+                    const openingWidth = parseFloat(wall.openingWidth) || 0;
+                    const openingHeight = parseFloat(wall.openingHeight) || 0;
+                    if (openingWidth > 0 && openingHeight > 0) {
+                        openingCodeDisplay = `${wall.openingCode} (${openingWidth} x ${openingHeight})`;
+                    } else {
+                        openingCodeDisplay = wall.openingCode;
+                    }
+                }
+
                 row.innerHTML = `
 <td>${index + 1}</td>
 <td>${wall.floor || '-'}</td>
@@ -1712,7 +1724,7 @@
 <td>${wallTypeDisplay}<br>${wall.wallLocation}</td>
 <td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallLength + '</span>' : wall.wallLength}</td>
 <td>${wall.exceedsMaxArea ? '<span style="color:#ff8c00;font-weight:bold;">' + wall.wallHeight + '</span>' : wall.wallHeight}</td>
-<td>${wall.openingCode || '-'}</td>
+<td>${openingCodeDisplay}</td>
 <td>${wall.blockCount}</td>
 <td>
     ${verticalLintelHtml}
@@ -1736,6 +1748,7 @@
                 tableBody.appendChild(row);
             });
         }
+
 
         // ปรับปรุงฟังก์ชัน summarizeAllLintels เพื่อให้เรียงลำดับไลน์เทลได้ถูกต้อง
         function summarizeAllLintels(walls) {
@@ -1914,44 +1927,48 @@
 
             // Calculate blocks by thickness
             const blocksByThickness = {};
-            walls.forEach(wall => {
-                const thickness = wall.blockThickness;
-                if (!blocksByThickness[thickness]) {
-                    blocksByThickness[thickness] = 0;
-                }
-                blocksByThickness[thickness] += parseInt(wall.blockCount);
-            });
+            walls.forEach((wall, index) => {
+                        // Determine wall type display with opening type in parentheses if applicable
+                        let wallTypeDisplay = wall.wallType;
+                        if (wall.wallType === 'ผนังมีช่องเปิด') {
+                            wallTypeDisplay = `ผนังมีช่องเปิด (${wall.openingType === 'ช่องเปิดประตู' ? 'ประตู' : 'หน้าต่าง'})`;
+                        }
 
-            // Get lintel summary - only prefabricated lintels
-            const lintelSummary = summarizeAllLintels(walls);
+                        // Format opening code with dimensions in parentheses
+                        let openingCodeDisplay = '-';
+                        if (wall.openingCode) {
+                            const openingWidth = parseFloat(wall.openingWidth) || 0;
+                            const openingHeight = parseFloat(wall.openingHeight) || 0;
+                            if (openingWidth > 0 && openingHeight > 0) {
+                                openingCodeDisplay = `${wall.openingCode} (${openingWidth} x ${openingHeight})`;
+                            } else {
+                                openingCodeDisplay = wall.openingCode;
+                            }
+                        }
 
-            // เรียงลำดับความหนา Block จากบางไปหนา
-            const sortedThicknesses = Object.entries(blocksByThickness).sort((a, b) => {
-                const thicknessA = parseFloat(a[0].split(' ')[0]);
-                const thicknessB = parseFloat(b[0].split(' ')[0]);
-                return thicknessA - thicknessB;
-            });
+                        // ใช้ customRemark ถ้ามี มิฉะนั้นใช้ remark ที่ระบบสร้าง
+                        let remarkContent = '';
+                        if (wall.customRemark) {
+                            remarkContent = wall.customRemark;
+                        } else if (wall.remark) {
+                            remarkContent = wall.remark;
+                        }
 
-            // เรียงลำดับ Lintel ตามความหนาและความยาว
-            const sortedLintels = lintelSummary.sort((a, b) => {
-                const matchA = a.size.match(/L(\d+)x(\d+)x([\d.]+)/);
-                const matchB = b.size.match(/L(\d+)x(\d+)x([\d.]+)/);
-
-                if (matchA && matchB) {
-                    const thicknessA = parseFloat(matchA[3]);
-                    const thicknessB = parseFloat(matchB[3]);
-
-                    if (thicknessA !== thicknessB) {
-                        return thicknessA - thicknessB;
-                    }
-
-                    const lengthA = parseInt(matchA[2]);
-                    const lengthB = parseInt(matchB[2]);
-                    return lengthA - lengthB;
-                }
-
-                return a.size.localeCompare(b.size);
-            });
+                        printContent += `
+<tr>
+    <td>${index + 1}</td>
+    <td>${wall.floor || '-'}</td>
+    <td>${wall.gridLine || '-'}</td>
+    <td>${wall.blockThickness}</td>
+    <td>${wallTypeDisplay}<br>${wall.wallLocation}</td>
+    <td>${wall.wallLength} m.</td>
+    <td>${wall.wallHeight} m.</td>
+    <td>${openingCodeDisplay}</td>
+    <td>${wall.blockCount}</td>
+    <td>${remarkContent ? `<span class="remark">${remarkContent}</span>` : '-'}</td>
+</tr>
+`;
+    });
 
             // Create print window
             const printWindow = window.open('', '_blank');
